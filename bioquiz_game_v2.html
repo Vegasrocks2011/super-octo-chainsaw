@@ -1,0 +1,725 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:transparent}
+.scr{padding:1.25rem 0;max-width:660px;display:none}
+.scr.active{display:block}
+h1{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+h2{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+h3{font-size:16px;font-weight:500;color:var(--color-text-primary)}
+.btn{display:inline-block;padding:9px 20px;font-size:14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);cursor:pointer;font-family:var(--font-sans);transition:background 0.15s}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-green{background:#1D9E75;color:#E1F5EE;border-color:#0F6E56}
+.btn-green:hover{background:#0F6E56}
+.btn-purple{background:#7F77DD;color:#EEEDFE;border-color:#534AB7}
+.btn-purple:hover{background:#534AB7}
+.btn-sm{padding:6px 14px;font-size:13px}
+input{width:100%;padding:9px 12px;font-size:14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);margin-bottom:10px;outline:none}
+input:focus{border-color:#7F77DD}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.pill-green{background:#E1F5EE;color:#085041}
+.pill-purple{background:#EEEDFE;color:#3C3489}
+.pill-amber{background:#FAEEDA;color:#633806}
+.pill-gray{background:#F1EFE8;color:#444441}
+.pill-red{background:#FCEBEB;color:#791F1F}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:1rem 0}
+.stat-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px;text-align:center}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:2px}
+.stat-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.xp-track{height:8px;background:var(--color-background-secondary);border-radius:4px;overflow:hidden;margin:6px 0}
+.xp-fill{height:100%;border-radius:4px;transition:width 0.5s ease}
+.err{font-size:13px;color:#A32D2D;min-height:18px;margin-top:2px}
+canvas{display:block;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary)}
+
+/* Quiz */
+.q-wrap{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.q-accent{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
+.q-num-tag{font-size:12px;color:var(--color-text-secondary);margin-bottom:8px}
+.q-text{font-size:15px;color:var(--color-text-primary);line-height:1.6;margin-bottom:1rem;padding-left:8px}
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt-btn{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:var(--border-radius-md);cursor:pointer;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);transition:all 0.15s;text-align:left}
+.opt-btn:hover{border-color:#7F77DD;background:#EEEDFE}
+.opt-btn.correct{border-color:#1D9E75;background:#E1F5EE}
+.opt-btn.incorrect{border-color:#E24B4A;background:#FCEBEB}
+.opt-letter{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;margin-top:1px}
+.opt-A .opt-letter{background:#E6F1FB;color:#0C447C}
+.opt-B .opt-letter{background:#EEEDFE;color:#3C3489}
+.opt-C .opt-letter{background:#E1F5EE;color:#085041}
+.opt-D .opt-letter{background:#FAEEDA;color:#633806}
+.opt-btn.correct .opt-letter{background:#1D9E75;color:#E1F5EE}
+.opt-btn.incorrect .opt-letter{background:#E24B4A;color:#FCEBEB}
+.opt-text{font-size:13px;color:var(--color-text-primary);line-height:1.4}
+.fb-box{margin-top:10px;padding:10px 12px;border-radius:var(--border-radius-md);font-size:13px;line-height:1.5}
+.fb-ok{background:#E1F5EE;color:#085041}
+.fb-no{background:#FCEBEB;color:#791F1F}
+.quiz-hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.hud-left{display:flex;gap:8px;align-items:center}
+.hud-right{display:flex;gap:8px;align-items:center}
+.prog-bar{height:6px;background:var(--color-background-secondary);border-radius:3px;margin-bottom:1rem;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width 0.3s}
+.xp-pop{position:fixed;pointer-events:none;font-size:14px;font-weight:500;color:#1D9E75;animation:floatUp 1s ease forwards;z-index:999}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
+.streak-banner{text-align:center;padding:12px;border-radius:var(--border-radius-md);background:#FAEEDA;color:#633806;font-size:14px;font-weight:500;margin-bottom:1rem;animation:popIn 0.3s ease}
+@keyframes popIn{0%{transform:scale(0.9);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* Result */
+.result-hero{text-align:center;padding:1.5rem 0 1rem}
+.result-score{font-size:48px;font-weight:500;color:var(--color-text-primary);line-height:1}
+.result-pct{font-size:20px;color:var(--color-text-secondary);margin-top:4px}
+.result-msg{font-size:15px;color:var(--color-text-primary);margin-top:8px}
+
+/* Minigame transition */
+.mg-intro{text-align:center;padding:2rem 1rem;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);margin-bottom:1rem}
+.mg-intro-icon{font-size:48px;margin-bottom:12px}
+.mg-intro h2{margin-bottom:8px}
+.mg-intro p{font-size:14px;color:var(--color-text-secondary);margin-bottom:1.25rem}
+
+/* Dashboard topic cards */
+.topic-card{display:flex;align-items:center;gap:14px;padding:1rem 1.25rem;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:10px;cursor:pointer;transition:border-color 0.15s,background 0.15s}
+.topic-card:hover:not(.locked){border-color:#7F77DD;background:#EEEDFE}
+.topic-card.locked{opacity:0.5;cursor:not-allowed}
+.t-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.level-chip{display:inline-flex;align-items:center;gap:5px;background:#EEEDFE;color:#3C3489;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:500}
+</style>
+
+<div id="s-login" class="scr active">
+  <div style="margin-bottom:1.5rem">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <div style="width:36px;height:36px;border-radius:50%;background:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:18px">🧬</div>
+      <h1>BioRevise</h1>
+    </div>
+    <p style="font-size:14px;color:var(--color-text-secondary)">IGCSE Biology · Edexcel Modular · Unit 1</p>
+  </div>
+  <div class="card" style="max-width:360px">
+    <h3 style="margin-bottom:1rem">Sign in or create account</h3>
+    <label style="font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px">Username</label>
+    <input id="lu" placeholder="e.g. alex2026" autocomplete="off"/>
+    <label style="font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px">PIN (4 digits)</label>
+    <input id="lp" type="password" placeholder="••••" maxlength="4"/>
+    <div class="err" id="lerr"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-green" onclick="doLogin()">sign in</button>
+      <button class="btn btn-purple" onclick="doReg()">create account</button>
+    </div>
+    <p style="font-size:12px;margin-top:12px;color:var(--color-text-secondary)">Progress saves across devices with your username and PIN.</p>
+  </div>
+</div>
+
+<div id="s-dash" class="scr">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+    <div>
+      <h1 id="d-hello">Hey!</h1>
+      <p id="d-sub" style="font-size:14px;color:var(--color-text-secondary)"></p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="level-chip">⭐ <span id="d-level">Novice</span></span>
+      <button class="btn btn-sm" onclick="doLogout()">sign out</button>
+    </div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-label">XP</div><div class="stat-val" id="d-xp">0</div></div>
+    <div class="stat-box"><div class="stat-label">Streak</div><div class="stat-val" id="d-streak">0🔥</div></div>
+    <div class="stat-box"><div class="stat-label">Answered</div><div class="stat-val" id="d-ans">0</div></div>
+    <div class="stat-box"><div class="stat-label">Accuracy</div><div class="stat-val" id="d-acc">–</div></div>
+  </div>
+  <div style="margin-bottom:1.25rem">
+    <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+      <span style="font-size:12px;color:var(--color-text-secondary)" id="d-xp-label">XP to next level</span>
+      <span style="font-size:12px;font-weight:500;color:var(--color-text-primary)" id="d-xp-frac">0/200</span>
+    </div>
+    <div class="xp-track"><div class="xp-fill" id="d-xp-bar" style="width:0%;background:#7F77DD"></div></div>
+  </div>
+  <div style="border-top:0.5px solid var(--color-border-tertiary);padding-top:1.25rem;margin-bottom:1rem">
+    <h2 style="margin-bottom:1rem">Choose your topic</h2>
+    <div class="topic-card" id="tc1" onclick="startGame(1)">
+      <div class="t-icon" style="background:#E1F5EE;color:#0F6E56">🔬</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:2px">
+          <h3>Topic 1</h3><span class="pill pill-green">35 questions</span>
+        </div>
+        <p style="font-size:13px;margin-bottom:6px">Nature and variety of living organisms</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px" id="t1-pills"></div>
+        <div class="xp-track"><div class="xp-fill" id="t1-bar" style="width:0%;background:#1D9E75"></div></div>
+      </div>
+      <span style="color:var(--color-text-secondary);font-size:18px">›</span>
+    </div>
+    <div class="topic-card locked" id="tc2" onclick="startGame(2)">
+      <div class="t-icon" style="background:#F1EFE8;color:#888780" id="tc2-icon">🧫</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:2px">
+          <h3>Topic 2</h3><span class="pill pill-purple">62 questions</span><span class="pill pill-amber" id="t2-lockpill">locked</span>
+        </div>
+        <p style="font-size:13px;margin-bottom:4px">Structure and functions — Part 1</p>
+        <p style="font-size:12px;color:var(--color-text-secondary)" id="t2-lockmsg">Score 70%+ on Topic 1 to unlock</p>
+        <div class="xp-track" style="margin-top:6px"><div class="xp-fill" id="t2-bar" style="width:0%;background:#7F77DD"></div></div>
+      </div>
+      <span style="color:var(--color-text-secondary);font-size:18px" id="tc2-arr">🔒</span>
+    </div>
+  </div>
+</div>
+
+<div id="s-quiz" class="scr">
+  <div class="quiz-hud">
+    <div class="hud-left">
+      <span class="pill pill-green" id="qhud-topic">Topic 1</span>
+      <span class="pill pill-purple" id="qhud-round">Round 1</span>
+    </div>
+    <div class="hud-right">
+      <span class="pill pill-amber" id="qhud-xp">XP: 0</span>
+      <span class="pill pill-gray" id="qhud-streak">🔥 0</span>
+      <button class="btn btn-sm" onclick="exitToD()">✕ exit</button>
+    </div>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="q-prog" style="width:0%;background:#7F77DD"></div></div>
+  <div id="streak-banner-wrap"></div>
+  <div id="q-area"></div>
+  <div style="display:flex;justify-content:space-between;margin-top:1rem">
+    <button class="btn btn-sm" id="q-prev" onclick="qNav(-1)">← prev</button>
+    <span style="font-size:13px;color:var(--color-text-secondary);align-self:center" id="q-count">1/20</span>
+    <button class="btn btn-sm" id="q-next" onclick="qNav(1)">next →</button>
+  </div>
+</div>
+
+<div id="s-mgintro" class="scr">
+  <div class="mg-intro">
+    <div class="mg-intro-icon" id="mg-icon">🐟</div>
+    <h2 id="mg-title">Mini game!</h2>
+    <p id="mg-desc">Catch the correct answers before they sink!</p>
+    <button class="btn btn-green" onclick="startMG()">Let's go!</button>
+  </div>
+</div>
+
+<div id="s-mg" class="scr">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <div>
+      <h3 id="mg-game-title">Cell Catcher</h3>
+      <p style="font-size:13px;color:var(--color-text-secondary)" id="mg-instruction">Click the falling cell with the correct answer</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="pill pill-green" id="mg-score-disp">Score: 0</span>
+      <span class="pill pill-gray" id="mg-time-disp">⏱ 30s</span>
+      <button class="btn btn-sm" onclick="endMG()">skip</button>
+    </div>
+  </div>
+  <div id="mg-question" style="font-size:14px;font-weight:500;color:var(--color-text-primary);padding:10px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-bottom:10px;line-height:1.5"></div>
+  <canvas id="mg-canvas" width="640" height="320"></canvas>
+</div>
+
+<div id="s-mgresult" class="scr">
+  <div class="mg-intro">
+    <div class="mg-intro-icon" id="mgr-icon">🎉</div>
+    <h2 id="mgr-title">Nice work!</h2>
+    <p id="mgr-msg" style="margin-bottom:1.25rem"></p>
+    <div class="stat-row" style="margin-bottom:1.25rem;text-align:left">
+      <div class="stat-box"><div class="stat-label">Caught</div><div class="stat-val" id="mgr-caught">0</div></div>
+      <div class="stat-box"><div class="stat-label">Missed</div><div class="stat-val" id="mgr-missed">0</div></div>
+      <div class="stat-box"><div class="stat-label">XP</div><div class="stat-val" id="mgr-xp">0</div></div>
+      <div class="stat-box"><div class="stat-label">Total XP</div><div class="stat-val" id="mgr-total">0</div></div>
+    </div>
+    <button class="btn btn-green" onclick="continueAfterMG()">Continue →</button>
+  </div>
+</div>
+
+<div id="s-result" class="scr">
+  <div class="result-hero">
+    <div style="font-size:40px" id="r-emoji">🎯</div>
+    <div class="result-score" id="r-score">0/20</div>
+    <div class="result-pct" id="r-pct">0%</div>
+    <div class="result-msg" id="r-msg"></div>
+  </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-label">Correct</div><div class="stat-val" id="r-correct">0</div></div>
+    <div class="stat-box"><div class="stat-label">Wrong</div><div class="stat-val" id="r-wrong">0</div></div>
+    <div class="stat-box"><div class="stat-label">XP earned</div><div class="stat-val" id="r-xp">0</div></div>
+    <div class="stat-box"><div class="stat-label">Total XP</div><div class="stat-val" id="r-total">0</div></div>
+  </div>
+  <div style="margin:1rem 0" id="r-unlock"></div>
+  <div style="border-top:0.5px solid var(--color-border-tertiary);padding-top:1rem;margin-bottom:1rem">
+    <h3 style="margin-bottom:0.75rem">Missed answers</h3>
+    <div id="r-review"></div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-green" onclick="playAgain()">play again</button>
+    <button class="btn" onclick="showDash()">back to topics</button>
+  </div>
+</div>
+
+<script>
+const LEVELS=[{n:"Novice",x:0},{n:"Apprentice",x:200},{n:"Explorer",x:500},{n:"Practitioner",x:1000},{n:"Expert",x:2000},{n:"Master",x:3500}];
+const ROUND_SIZE=20, UNLOCK_PCT=70;
+
+const T1=[
+  {t:"1a",q:"Which is NOT one of the eight characteristics of living organisms?",o:["They respire","They reproduce","They photosynthesise","They excrete waste"],a:2,f:"Photosynthesis is only in plants and some protoctists — not universal to all living things."},
+  {t:"1a",q:"Which best describes the characteristic of excretion?",o:["Taking in food for energy","Removal of metabolic waste products","Responding to the environment","Producing offspring"],a:1,f:"Excretion is removal of waste products of metabolism. Defecation is egestion, not excretion."},
+  {t:"1a",q:"A plant turns its leaves toward light. Which characteristic does this show?",o:["Reproduction","Excretion","Response to surroundings","Control of internal conditions"],a:2,f:"Responding to external stimuli (sensitivity) is the characteristic shown here."},
+  {t:"1a",q:"Viruses can replicate. Why are they not classed as living?",o:["They have no protein coat","They only replicate inside host cells and lack most life characteristics","They contain no nucleic acids","They are too large to be cells"],a:1,f:"Viruses require a host cell to replicate and lack independent respiration, growth, excretion etc."},
+  {t:"1a",q:"Which pair of life processes does a seed carry out while germinating in the dark?",o:["Photosynthesis and respiration","Respiration and nutrition","Excretion and photosynthesis","Movement and photosynthesis"],a:1,f:"In the dark a seed cannot photosynthesise. It respires stored food and absorbs nutrition from reserves."},
+  {t:"1b",q:"All eukaryotic cells share which feature?",o:["Chloroplasts","Cell wall","Multicellularity","Membrane-bound nucleus"],a:3,f:"A membrane-bound nucleus is the defining feature of eukaryotes. Not all have walls, chloroplasts or are multicellular."},
+  {t:"1b",q:"Which correctly describes plant cells?",o:["Chloroplasts + cellulose cell walls","Chitin cell walls + saprotrophic feeding","No cell wall + glycogen storage","Hyphae + extracellular digestion"],a:0,f:"Plants have chloroplasts for photosynthesis and cellulose cell walls."},
+  {t:"1b",q:"How do plants store carbohydrates?",o:["Glycogen","Chitin","Starch or sucrose","Fatty acids"],a:2,f:"Plants store carbohydrate as starch (long-term) or sucrose (transport). Glycogen is animal/fungal storage."},
+  {t:"1b",q:"Which is a named herbaceous legume in the spec?",o:["Maize","Pea or bean","Yeast","Mucor"],a:1,f:"Peas and beans are the herbaceous legume examples. Maize is a cereal. Yeast and Mucor are fungi."},
+  {t:"1b",q:"Animals store carbohydrate as:",o:["Starch","Sucrose","Glycogen","Cellulose"],a:2,f:"Animals store glycogen mainly in the liver and muscles."},
+  {t:"1b",q:"Fungi feed by which method?",o:["Photosynthesis","Ingesting whole food","Saprotrophic nutrition","Filter feeding"],a:2,f:"Fungi secrete digestive enzymes externally and absorb the digested products — saprotrophic nutrition."},
+  {t:"1b",q:"What are fungal cell walls made of?",o:["Cellulose","Chitin","Peptidoglycan","Glycogen"],a:1,f:"Chitin forms fungal cell walls. Cellulose = plants. Peptidoglycan = bacteria."},
+  {t:"1b",q:"Yeast is unusual among fungi because it is:",o:["Able to photosynthesise","Single-celled","Made of hyphae","Pathogenic"],a:1,f:"Most fungi are multicellular with hyphae. Yeast is an exception — it is single-celled."},
+  {t:"1b",q:"Which named fungus has typical hyphal structure?",o:["Plasmodium","Amoeba","Mucor","Lactobacillus"],a:2,f:"Mucor is the spec's named hyphal fungus. The others are a protoctist, protoctist and bacterium."},
+  {t:"1b",q:"Protoctists are best described as:",o:["Multicellular with chloroplasts","Microscopic single-celled eukaryotes","Prokaryotes lacking a nucleus","Multicellular saprotrophs"],a:1,f:"Protoctists are microscopic, single-celled eukaryotes — some animal-like, some plant-like."},
+  {t:"1b",q:"Which protoctist causes malaria?",o:["Plasmodium","Amoeba","Chlorella","Mucor"],a:0,f:"Plasmodium is the protoctist pathogen responsible for malaria."},
+  {t:"1b",q:"Why is Chlorella described as plant-like?",o:["Has chitin walls","Has chloroplasts and photosynthesises","Feeds saprotrophically","Has a nervous system"],a:1,f:"Chlorella contains chloroplasts and can photosynthesise — hence plant-like."},
+  {t:"1b",q:"Bacterial cells contain:",o:["Membrane-bound nucleus + mitochondria","Circular DNA + plasmids + no nucleus","Chloroplasts + chitin wall","Linear chromosomes + nucleus"],a:1,f:"Bacteria are prokaryotes — circular DNA, plasmids, cell wall, no true nucleus."},
+  {t:"1b",q:"What shape is Lactobacillus bulgaricus?",o:["Spherical","Rod-shaped","Spiral","Comma-shaped"],a:1,f:"Lactobacillus is rod-shaped. Pneumococcus (causing pneumonia) is the spherical example."},
+  {t:"1b",q:"What makes prokaryotes different from eukaryotes?",o:["Prokaryotes have a nucleus; eukaryotes don't","Prokaryotes lack a membrane-bound nucleus","Prokaryotes are always larger","Prokaryotes always have chloroplasts"],a:1,f:"Prokaryotes have no membrane-bound nucleus — DNA is a free circular chromosome."},
+  {t:"1b",q:"A pathogen is:",o:["Any photosynthetic organism","An organism or particle that causes disease","A type of white blood cell","A protein enzyme"],a:1,f:"Pathogens cause disease. They include fungi, bacteria, protoctists and viruses."},
+  {t:"1b",q:"Which groups can contain pathogens?",o:["Fungi only","Bacteria and viruses only","Fungi, bacteria, protoctists and viruses","Viruses only"],a:2,f:"All four groups include pathogens. Viruses are non-living but still cause disease."},
+  {t:"1b",q:"Viruses are non-living because they:",o:["Contain no nucleic acids","Lack cellular structure and can only replicate in a host","Have no protein coat","Are smaller than atoms"],a:1,f:"Viruses have no cellular structure and cannot replicate independently — they hijack host cells."},
+  {t:"1b",q:"Tobacco mosaic virus causes leaf discolouration by:",o:["Destroying cellulose walls","Preventing chloroplast formation","Blocking water absorption","Closing stomata permanently"],a:1,f:"TMV prevents chloroplast formation, disrupting photosynthesis and causing mosaic patterns."},
+  {t:"1b",q:"HIV causes which disease?",o:["Malaria","Pneumonia","AIDS","Influenza"],a:2,f:"HIV causes AIDS. Influenza virus causes flu. Plasmodium causes malaria."},
+  {t:"1b",q:"Viruses compared to bacteria:",o:["Both have cellular structure","Viruses are smaller with no cellular structure","Bacteria need host cells; viruses don't","Both contain DNA and RNA"],a:1,f:"Viruses are smaller and have no cellular structure. Bacteria are prokaryotic cells reproducing independently."},
+  {t:"1b",q:"Single-celled, has nucleus and chloroplasts. Which group?",o:["Bacterium","Fungus","Protoctist","Animal"],a:2,f:"A single-celled eukaryote with chloroplasts is a plant-like protoctist such as Chlorella."},
+  {t:"1b",q:"Cell wall materials: Plant / Fungus / Bacterium",o:["Cellulose / Chitin / Peptidoglycan","Chitin / Cellulose / Peptidoglycan","Cellulose / Peptidoglycan / Chitin","Glycogen / Chitin / Cellulose"],a:0,f:"Plants = cellulose, Fungi = chitin, Bacteria = peptidoglycan."},
+  {t:"1b",q:"Which is unicellular AND prokaryotic?",o:["Yeast","Amoeba","Chlorella","Lactobacillus"],a:3,f:"Lactobacillus is a bacterium — unicellular and prokaryotic. The others are all eukaryotes."},
+  {t:"1b",q:"Feature in plant cells but NOT animal cells:",o:["Mitochondria","Ribosomes","Chloroplasts","Cell membrane"],a:2,f:"Chloroplasts are plant-only. Mitochondria, ribosomes and membranes are in both."},
+  {t:"1b",q:"Multicellular, no photosynthesis, no cell wall, stores glycogen. Which group?",o:["Fungi","Plants","Animals","Protoctists"],a:2,f:"This is an animal — multicellular, no chloroplasts or cell wall, stores glycogen."},
+  {t:"1b",q:"Pneumococcus causes which disease?",o:["Malaria","AIDS","Pneumonia","Influenza"],a:2,f:"Pneumococcus is the spherical bacterium causing pneumonia."},
+  {t:"1b",q:"Which kingdom stores carbohydrate as glycogen AND has chitin walls?",o:["Plants","Animals","Fungi","Protoctists"],a:2,f:"Fungi store glycogen and have chitin walls. Animals store glycogen but have no cell wall."},
+  {t:"1b",q:"An organism has hyphae and feeds by external enzyme secretion. Which group?",o:["Plant","Animal","Fungus","Protoctist"],a:2,f:"Hyphae and saprotrophic (external enzyme) feeding are defining fungal features."},
+  {t:"1b",q:"Which bacterium is used in yoghurt production?",o:["Pneumococcus","Lactobacillus bulgaricus","Plasmodium","Mucor"],a:1,f:"Lactobacillus bulgaricus is the rod-shaped bacterium used in yoghurt production."}
+];
+
+const T2=[
+  {t:"2a",q:"Correct order smallest to largest:",o:["Cells→organelles→tissues→organs→systems","Organelles→cells→tissues→organs→systems","Tissues→cells→organelles→organs","Organs→tissues→cells→organelles"],a:1,f:"Organelles→cells→tissues→organs→systems is the correct hierarchy."},
+  {t:"2a",q:"A group of similar cells working together is a:",o:["Organ","Organelle","Tissue","System"],a:2,f:"A tissue is a group of similar cells. Organs are made of several tissue types."},
+  {t:"2b",q:"Which organelle controls cell activities and holds genetic material?",o:["Mitochondria","Vacuole","Nucleus","Ribosome"],a:2,f:"The nucleus contains DNA and controls cell activities."},
+  {t:"2b",q:"Where does aerobic respiration occur?",o:["Nucleus","Ribosome","Chloroplast","Mitochondria"],a:3,f:"Aerobic respiration occurs in mitochondria — the cell's powerhouses."},
+  {t:"2b",q:"Ribosomes are the site of:",o:["Photosynthesis","Protein synthesis","Cell control","Energy production"],a:1,f:"Ribosomes assemble amino acids into proteins using mRNA instructions."},
+  {t:"2b",q:"Which structure controls entry and exit of substances?",o:["Cell wall","Nucleus","Cell membrane","Vacuole"],a:2,f:"The selectively permeable cell membrane controls what moves in and out."},
+  {t:"2b",q:"Chloroplasts are the site of:",o:["Aerobic respiration","Protein synthesis","Photosynthesis","Cell sap storage"],a:2,f:"Chloroplasts contain chlorophyll and are where photosynthesis occurs."},
+  {t:"2b",q:"Found in plant cells but NOT animal cells:",o:["Mitochondria","Cell membrane","Ribosome","Chloroplast"],a:3,f:"Chloroplasts are plant-only. Mitochondria, membranes and ribosomes are in both."},
+  {t:"2b",q:"Cell with cell wall, large vacuole and chloroplasts. Type?",o:["Animal","Bacterial","Fungal","Plant"],a:3,f:"Cell wall + large vacuole + chloroplasts = plant cell."},
+  {t:"2b",q:"The vacuole contains cell sap and helps:",o:["Digest food","Store water and support cell shape","Absorb light","Control cell division"],a:1,f:"The vacuole stores cell sap and maintains turgor pressure to support the cell."},
+  {t:"2b",q:"Difference between plant and animal cells:",o:["Animal cells have a cell wall","Plant cells have fixed shape","Plant cells have large permanent vacuole","Animal cells have chloroplasts"],a:2,f:"Plant cells have a large permanent vacuole. Animal cells may have small temporary ones or none."},
+  {t:"2b",q:"The cell wall is:",o:["Selectively permeable like the membrane","Found in animals and plants","Fully permeable structural support","Site of protein synthesis"],a:2,f:"The cell wall provides structural support and is fully permeable — unlike the membrane."},
+  {t:"2b",q:"Cell differentiation means:",o:["All cells stay identical","Cells become specialised during development","Cells divide to make identical copies","Cells just grow larger"],a:1,f:"Differentiation is the process where unspecialised cells develop into specialised ones."},
+  {t:"2b",q:"Key advantage of stem cells in medicine:",o:["Only one cell type possible","Can differentiate into many cell types to replace damaged tissue","Always available without ethical issues","Immediately produce functional cells"],a:1,f:"Stem cells can become many cell types — potentially replacing any damaged or diseased tissue."},
+  {t:"2c",q:"Elements in ALL carbohydrates, proteins and lipids:",o:["C, H, O only","C, H, O and N","C and H only","C, H, O, N and S"],a:0,f:"All three contain C, H and O. Only proteins also contain nitrogen."},
+  {t:"2c",q:"Element in proteins but NOT carbohydrates or lipids:",o:["Carbon","Oxygen","Nitrogen","Hydrogen"],a:2,f:"Nitrogen is in amino acids (making proteins). Carbohydrates and lipids contain only C, H, O."},
+  {t:"2c",q:"Starch and glycogen are both made from:",o:["Amino acids","Fatty acids","Glucose","Glycerol"],a:2,f:"Both starch and glycogen are polysaccharides made of glucose units."},
+  {t:"2c",q:"Building blocks of proteins:",o:["Simple sugars","Fatty acids + glycerol","Amino acids","Nucleotides"],a:2,f:"Proteins are polymers of amino acids joined in polypeptide chains."},
+  {t:"2c",q:"Lipids are made from:",o:["Glucose + amino acids","Fatty acids + glycerol","Amino acids + glycerol","Sugars + fatty acids"],a:1,f:"Three fatty acids + one glycerol = triglyceride (a lipid)."},
+  {t:"2c",q:"Iodine solution turns blue-black. What is present?",o:["Glucose","Protein","Starch","Lipid"],a:2,f:"Iodine solution indicates starch by turning blue-black."},
+  {t:"2c",q:"Benedict's turns brick red on heating. What is present?",o:["Protein","Starch","Reducing sugar e.g. glucose","Lipid"],a:2,f:"Brick red Benedict's result indicates a reducing sugar such as glucose."},
+  {t:"2c",q:"Biuret reagent tests for:",o:["Starch","Reducing sugars","Protein","Lipids"],a:2,f:"Biuret turns purple in the presence of protein (detecting peptide bonds)."},
+  {t:"2c",q:"An enzyme is:",o:["An energy storage molecule","A biological catalyst","A lipid in membranes","A structural cell wall protein"],a:1,f:"Enzymes are biological catalysts — proteins that speed up reactions without being used up."},
+  {t:"2c",q:"Above the optimum temperature an enzyme:",o:["Works faster","Denatures — active site permanently changes shape","Goes inactive temporarily then recovers","Becomes a different enzyme"],a:1,f:"High temperatures break bonds maintaining the enzyme's shape. The active site changes permanently — denaturation."},
+  {t:"2c",q:"Extreme pH affects enzyme by:",o:["No effect","Altering active site shape, reducing activity","Always increasing activity","Making all enzymes work at same rate"],a:1,f:"pH changes alter charges on active site amino acids, distorting its shape and reducing substrate binding."},
+  {t:"2d",q:"Diffusion is:",o:["Water movement through a membrane","Movement from high to low concentration","Movement against a gradient using energy","Movement only through living membranes"],a:1,f:"Diffusion is net movement of particles from high to low concentration — passive, no energy needed."},
+  {t:"2d",q:"Osmosis is the net movement of:",o:["Any molecule from high to low concentration","Solute through a partially permeable membrane","Water from high to low water potential through a partially permeable membrane","Water using active transport"],a:2,f:"Osmosis specifically moves water from higher to lower water potential through a partially permeable membrane."},
+  {t:"2d",q:"Active transport vs diffusion:",o:["Active transport goes down gradient; diffusion doesn't","Active transport needs energy + goes against gradient; diffusion is passive","Diffusion needs energy; active transport doesn't","Both need energy — active transport is faster"],a:1,f:"Active transport uses ATP to move substances against their concentration gradient. Diffusion is passive."},
+  {t:"2d",q:"Which increases diffusion rate?",o:["Lower temperature","Greater distance","Higher surface area : volume ratio","Shallower gradient"],a:2,f:"Higher SA:V ratio means more surface relative to volume — increases diffusion rate."},
+  {t:"2d",q:"Red blood cell in very dilute solution:",o:["Shrinks — water leaves","Swells and may burst — water enters","Unaffected","Photosynthesises"],a:1,f:"Higher water potential outside → water enters by osmosis → cell swells and may lyse (burst)."},
+  {t:"2d",q:"Plant cell in concentrated sugar solution:",o:["Swells — becomes turgid","Loses water — becomes plasmolysed","Membrane pumps sugar in","Unaffected"],a:1,f:"Lower water potential outside → water leaves by osmosis → vacuole shrinks → plasmolysis."},
+  {t:"2d",q:"Mineral ions absorbed into roots against gradient. Process:",o:["Diffusion","Osmosis","Active transport","Filtration"],a:2,f:"Active transport uses energy from respiration to move minerals against their concentration gradient."},
+  {t:"2e",q:"Word equation for photosynthesis:",o:["Glucose + O₂ → CO₂ + water","CO₂ + water → glucose + O₂","CO₂ + O₂ → glucose + water","Water + glucose → O₂ + CO₂"],a:1,f:"Photosynthesis: CO₂ + water → glucose + oxygen (using light energy)."},
+  {t:"2e",q:"Symbol equation for photosynthesis:",o:["C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O","6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂","6CO₂ + 6O₂ → C₆H₁₂O₆","C₆H₁₂O₆ → 6CO₂ + 6H₂O"],a:1,f:"6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂ — the reverse of aerobic respiration."},
+  {t:"2e",q:"Plant mineral needed for chlorophyll:",o:["Nitrate","Magnesium","Calcium","Phosphate"],a:1,f:"Magnesium is essential for chlorophyll synthesis. Deficiency causes chlorosis (yellowing)."},
+  {t:"2e",q:"Plants need nitrate ions to make:",o:["Chlorophyll","Amino acids for protein synthesis","Cellulose","Starch"],a:1,f:"Nitrate provides nitrogen for amino acids — the building blocks of proteins."},
+  {t:"2e",q:"Which is the main energy source in a balanced diet?",o:["Protein","Lipids","Carbohydrates","Vitamins"],a:2,f:"Carbohydrates are the primary energy source. Lipids are secondary."},
+  {t:"2e",q:"Vitamin C prevents:",o:["Rickets","Scurvy","Night blindness","Anaemia"],a:1,f:"Vitamin C maintains healthy connective tissue. Deficiency causes scurvy."},
+  {t:"2e",q:"Iron in the diet is needed to make:",o:["Bones","Chlorophyll","Haemoglobin","Cell walls"],a:2,f:"Iron is a key component of haemoglobin, the oxygen-carrying protein in red blood cells."},
+  {t:"2e",q:"Peristalsis is:",o:["Chemical digestion by enzymes","Wave-like muscular contractions moving food along gut","Absorption of nutrients in small intestine","Bile production by liver"],a:1,f:"Peristalsis — alternating circular and longitudinal muscle contractions — propels food through the gut."},
+  {t:"2e",q:"Bile is produced by the liver and stored in:",o:["Pancreas","Stomach","Gall bladder","Duodenum"],a:2,f:"Bile is made in the liver and stored in the gall bladder before release into the duodenum."},
+  {t:"2e",q:"The two roles of bile:",o:["Digests proteins + absorbs fats","Neutralises stomach acid + emulsifies lipids","Makes enzymes + absorbs glucose","Stores glycogen + makes insulin"],a:1,f:"Bile neutralises acid from the stomach and emulsifies lipids, increasing surface area for lipase."},
+  {t:"2e",q:"Amylase digests starch into:",o:["Glucose","Amino acids","Maltose","Fatty acids"],a:2,f:"Amylase breaks starch into maltose. Maltase then breaks maltose into glucose."},
+  {t:"2e",q:"Final products of protein digestion:",o:["Fatty acids + glycerol","Glucose","Amino acids","Maltose"],a:2,f:"Proteases digest proteins into amino acids for absorption."},
+  {t:"2e",q:"Villi increase absorption in the small intestine by:",o:["Producing enzymes","Increasing surface area","Secreting bile","Producing mucus"],a:1,f:"Villi vastly increase the surface area available for absorption of digested food molecules."},
+  {t:"2f",q:"ATP in cells:",o:["Stores genetic information","Provides energy for cellular processes","Structural membrane protein","Carries oxygen"],a:1,f:"ATP is the energy currency of cells — energy released by breaking ATP powers cell activities."},
+  {t:"2f",q:"Word equation for aerobic respiration:",o:["CO₂ + water → glucose + O₂","Glucose + O₂ → CO₂ + water + ATP","Glucose → CO₂ + ethanol + ATP","Glucose + water → CO₂ + ATP"],a:1,f:"Aerobic respiration: glucose + oxygen → carbon dioxide + water (+ ATP)."},
+  {t:"2f",q:"Symbol equation for aerobic respiration:",o:["C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O","6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂","C₆H₁₂O₆ → 2C₂H₅OH + 2CO₂","C₆H₁₂O₆ + 6H₂O → 6CO₂ + 6H₂"],a:0,f:"C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O — reverse of photosynthesis."},
+  {t:"2f",q:"Anaerobic respiration in animals produces:",o:["CO₂ + water","Ethanol + CO₂","Lactic acid","Glucose + O₂"],a:2,f:"Animals produce lactic acid anaerobically. Yeast produces ethanol + CO₂."},
+  {t:"2f",q:"Anaerobic respiration in yeast produces:",o:["Lactic acid","CO₂ + water","Ethanol + CO₂","O₂ + glucose"],a:2,f:"Yeast fermentation produces ethanol and carbon dioxide."},
+  {t:"2f",q:"Key difference — aerobic vs anaerobic:",o:["Aerobic makes lactic acid","Anaerobic makes more ATP","Aerobic needs O₂ + makes far more ATP; anaerobic doesn't need O₂","Aerobic is in cytoplasm; anaerobic in mitochondria"],a:2,f:"Aerobic respiration requires oxygen and produces far more ATP than anaerobic."},
+  {t:"2g",q:"Daylight: plant photosynthesising fast. Net gas exchange:",o:["Net O₂ uptake, CO₂ release","Net CO₂ uptake, O₂ release","Equal amounts exchanged","No exchange in daylight"],a:1,f:"Photosynthesis > respiration in daylight: net CO₂ in, O₂ out."},
+  {t:"2g",q:"At night, plant net gas exchange:",o:["CO₂ uptake + O₂ release","O₂ uptake + CO₂ release","No exchange","Equal exchange"],a:1,f:"At night only respiration occurs: O₂ in, CO₂ out."},
+  {t:"2g",q:"Gases enter/leave a leaf through:",o:["Root hairs","Xylem","Stomata","Phloem"],a:2,f:"Stomata are pores on the leaf surface controlled by guard cells — the gas exchange portals."},
+  {t:"2g",q:"Alveoli are adapted for gas exchange by having:",o:["Thick walls","Small surface area","Thin walls + large surface area + rich blood supply","Location in bronchi"],a:2,f:"Alveoli: thin walls (short diffusion distance), huge total area, capillary network to maintain gradients."},
+  {t:"2g",q:"Muscles involved in ventilation:",o:["Bicep and tricep","Intercostal muscles + diaphragm","Heart muscle + diaphragm","Abdominal muscles only"],a:1,f:"Intercostal muscles and the diaphragm change thorax volume to drive airflow."},
+  {t:"2g",q:"Smoking causes emphysema by:",o:["Increasing alveoli surface area","Destroying alveoli walls, reducing surface area","Increasing useful mucus production","Thickening walls to speed diffusion"],a:1,f:"Smoking destroys alveoli walls, reducing gas exchange surface area — causing emphysema."},
+  {t:"2g",q:"Smoking increases CHD risk because:",o:["Nicotine destroys heart muscle","Chemicals damage artery walls promoting fatty deposits + narrowing","Reduces CO₂ in blood","Tar only affects lungs"],a:1,f:"Cigarette chemicals damage artery walls, promoting atherosclerosis and narrowing coronary arteries."}
+];
+
+const MG_QS_CC=[
+  {q:"Which molecule stores energy in cells?",o:["Starch","ATP","Cellulose","Chitin"],a:1},
+  {q:"Fungi cell walls are made of:",o:["Cellulose","Glycogen","Chitin","Peptidoglycan"],a:2},
+  {q:"Products of aerobic respiration:",o:["Lactic acid","Ethanol + CO₂","CO₂ + water","O₂ + glucose"],a:2},
+  {q:"Which ion do plants need for chlorophyll?",o:["Nitrate","Iron","Magnesium","Calcium"],a:2},
+  {q:"Osmosis moves:",o:["Glucose","Proteins","Water","Minerals"],a:2},
+  {q:"Starch is made from:",o:["Amino acids","Glucose","Fatty acids","Glycerol"],a:1},
+  {q:"Where does photosynthesis occur?",o:["Mitochondria","Nucleus","Ribosome","Chloroplast"],a:3},
+  {q:"Biuret test detects:",o:["Starch","Sugar","Protein","Fat"],a:2},
+  {q:"Anaerobic respiration in yeast produces:",o:["Lactic acid","CO₂ only","Ethanol + CO₂","Water + CO₂"],a:2},
+  {q:"Which is a protoctist?",o:["Mucor","Pneumococcus","Plasmodium","Lactobacillus"],a:2}
+];
+
+const MG_QS_SUB=[
+  {q:"Bile is produced by the:",o:["Pancreas","Stomach","Liver","Gall bladder"],a:2},
+  {q:"Which process needs energy + goes against gradient?",o:["Diffusion","Osmosis","Active transport","Filtration"],a:2},
+  {q:"Prokaryotes differ from eukaryotes by having:",o:["A nucleus","Mitochondria","No membrane-bound nucleus","Chloroplasts"],a:2},
+  {q:"Aerobic respiration equation products (right side):",o:["Glucose + O₂","CO₂ + water","Lactic acid","Ethanol + CO₂"],a:1},
+  {q:"Which vitamin prevents scurvy?",o:["Vitamin A","Vitamin D","Vitamin K","Vitamin C"],a:3},
+  {q:"Enzyme active site permanently changes shape at high temp. This is called:",o:["Activation","Inhibition","Denaturation","Catalysis"],a:2},
+  {q:"Haemoglobin requires which mineral?",o:["Calcium","Magnesium","Sodium","Iron"],a:3},
+  {q:"Stomata are found on:",o:["Roots","Xylem","Leaves","Phloem"],a:2},
+  {q:"Villi are found in:",o:["Stomach","Large intestine","Small intestine","Oesophagus"],a:2},
+  {q:"Peristalsis moves food by:",o:["Enzyme action","Wave-like muscular contractions","Osmosis","Diffusion"],a:1}
+];
+
+let user=null, ud=null;
+let curTopic=0, pool=[], roundQs=[], curIdx=0, sesAnswers=[], sesXP=0, sesCorrect=0;
+let roundNum=0, mgType=0, mgScore=0, mgTimer=null, mgAnimFrame=null;
+
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+async function loadU(u){try{const r=await window.storage.get('bq:'+u,true);return r?JSON.parse(r.value):null;}catch(e){return null;}}
+async function saveU(){try{await window.storage.set('bq:'+user,JSON.stringify(ud),true);}catch(e){}}
+function freshUD(pin){return{pin,xp:0,streak:0,lastDate:'',totalAns:0,totalCorrect:0,t1Best:0,t2Best:0,t1Ans:0,t2Ans:0,t1Cor:0,t2Cor:0};}
+function getLv(xp){let l=0;for(let i=0;i<LEVELS.length;i++)if(xp>=LEVELS[i].x)l=i;return l;}
+function updateStreak(){const t=new Date().toDateString(),y=new Date(Date.now()-86400000).toDateString();if(ud.lastDate===t)return;ud.streak=(ud.lastDate===y)?ud.streak+1:1;ud.lastDate=t;}
+
+async function doLogin(){
+  const u=document.getElementById('lu').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value.trim();
+  const err=document.getElementById('lerr');
+  err.textContent='';
+  if(!u||!p){err.textContent='Enter username and PIN.';return;}
+  if(!/^\d{4}$/.test(p)){err.textContent='PIN must be 4 digits.';return;}
+  const data=await loadU(u);
+  if(!data){err.textContent='Username not found — use Create Account.';return;}
+  if(data.pin!==p){err.textContent='Wrong PIN.';return;}
+  user=u;ud=data;updateStreak();showDash();
+}
+async function doReg(){
+  const u=document.getElementById('lu').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value.trim();
+  const err=document.getElementById('lerr');
+  err.textContent='';
+  if(!u||u.length<3){err.textContent='Username must be 3+ characters.';return;}
+  if(!/^\d{4}$/.test(p)){err.textContent='PIN must be 4 digits.';return;}
+  if(await loadU(u)){err.textContent='Username taken.';return;}
+  user=u;ud=freshUD(p);await saveU();updateStreak();showDash();
+}
+function doLogout(){user=null;ud=null;show('s-login');}
+
+function showDash(){
+  const t2ok=ud.t1Best>=UNLOCK_PCT;
+  document.getElementById('d-hello').textContent='Hey '+user.charAt(0).toUpperCase()+user.slice(1)+'!';
+  document.getElementById('d-sub').textContent=ud.streak>1?'🔥 '+ud.streak+' day streak!':'Ready to revise?';
+  document.getElementById('d-xp').textContent=ud.xp;
+  document.getElementById('d-streak').textContent=ud.streak+'🔥';
+  document.getElementById('d-ans').textContent=ud.totalAns;
+  document.getElementById('d-acc').textContent=ud.totalAns>0?Math.round(ud.totalCorrect/ud.totalAns*100)+'%':'–';
+  const lv=getLv(ud.xp);
+  document.getElementById('d-level').textContent=LEVELS[lv].n;
+  const nx=lv<LEVELS.length-1?LEVELS[lv+1].x:null;
+  const pv=LEVELS[lv].x;
+  if(nx){document.getElementById('d-xp-bar').style.width=Math.round((ud.xp-pv)/(nx-pv)*100)+'%';document.getElementById('d-xp-frac').textContent=ud.xp+'/'+nx;document.getElementById('d-xp-label').textContent='Progress to '+LEVELS[lv+1].n;}
+  else{document.getElementById('d-xp-bar').style.width='100%';document.getElementById('d-xp-frac').textContent=ud.xp+' XP';document.getElementById('d-xp-label').textContent='Max level!';}
+  const t1p=document.getElementById('t1-pills');
+  t1p.innerHTML=ud.t1Ans>0?`<span class="pill pill-green">${ud.t1Ans} answered</span><span class="pill pill-gray">${Math.round(ud.t1Cor/ud.t1Ans*100)}% acc</span><span class="pill pill-amber">Best ${Math.round(ud.t1Best)}%</span>`:'';
+  document.getElementById('t1-bar').style.width=Math.min(100,ud.t1Best)+'%';
+  const tc2=document.getElementById('tc2');
+  if(t2ok){tc2.classList.remove('locked');document.getElementById('tc2-icon').style.background='#EEEDFE';document.getElementById('tc2-icon').style.color='#534AB7';document.getElementById('t2-lockpill').style.display='none';document.getElementById('t2-lockmsg').textContent=ud.t2Ans>0?ud.t2Ans+' answered · '+Math.round(ud.t2Cor/ud.t2Ans*100)+'% acc':'Ready to unlock!';document.getElementById('tc2-arr').textContent='›';}
+  else{tc2.classList.add('locked');document.getElementById('t2-lockpill').style.display='';document.getElementById('t2-lockmsg').textContent='Score 70%+ on Topic 1 to unlock (best: '+Math.round(ud.t1Best)+'%)';document.getElementById('tc2-arr').textContent='🔒';}
+  document.getElementById('t2-bar').style.width=Math.min(100,ud.t2Best)+'%';
+  show('s-dash');
+}
+
+function startGame(n){
+  if(n===2&&ud.t1Best<UNLOCK_PCT)return;
+  curTopic=n;pool=shuffle(n===1?[...T1]:[...T2]);roundNum=0;sesXP=0;sesCorrect=0;
+  if(curTopic===1){ud.t1Ans=0;ud.t1Cor=0;}else{ud.t2Ans=0;ud.t2Cor=0;}
+  startRound();
+}
+
+function startRound(){
+  roundNum++;
+  roundQs=pool.splice(0,Math.min(ROUND_SIZE,pool.length));
+  if(roundQs.length===0){showFinalResult();return;}
+  curIdx=0;sesAnswers=new Array(roundQs.length).fill(undefined);
+  document.getElementById('qhud-topic').textContent='Topic '+curTopic;
+  document.getElementById('qhud-round').textContent='Round '+roundNum;
+  document.getElementById('qhud-xp').textContent='XP: '+ud.xp;
+  document.getElementById('qhud-streak').textContent='🔥 '+ud.streak;
+  show('s-quiz');renderQ();
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function renderQ(){
+  const q=roundQs[curIdx];
+  const ua=sesAnswers[curIdx];
+  const answered=ua!==undefined;
+  const done=sesAnswers.filter(a=>a!==undefined).length;
+  document.getElementById('q-prog').style.width=Math.round(done/roundQs.length*100)+'%';
+  document.getElementById('q-count').textContent=(curIdx+1)+'/'+roundQs.length;
+  document.getElementById('q-prev').disabled=curIdx===0;
+  document.getElementById('q-next').disabled=curIdx===roundQs.length-1;
+  const colors=['#378ADD','#7F77DD','#1D9E75','#BA7517'];
+  const accColor=colors[curIdx%colors.length];
+  const streakN=calcStreak();
+  let banner='';
+  if(streakN>=3&&sesAnswers[curIdx-1]!==undefined&&sesAnswers[curIdx-1]===roundQs[curIdx-1].a){
+    banner=`<div class="streak-banner">🔥 ${streakN} in a row! +${Math.floor(streakN/3)*5} bonus XP</div>`;
+  }
+  document.getElementById('streak-banner-wrap').innerHTML=banner;
+  const ltrs=['A','B','C','D'];
+  let opts='';
+  q.o.forEach((opt,i)=>{
+    let cls='opt-btn opt-'+ltrs[i];
+    if(answered){if(i===q.a)cls+=' correct';else if(i===ua)cls+=' incorrect';}
+    opts+=`<div class="${cls}" onclick="${answered?'':'pick('+i+')'}" style="${answered?'cursor:default':''}"><span class="opt-letter">${ltrs[i]}</span><span class="opt-text">${opt}</span></div>`;
+  });
+  let fb='';
+  if(answered){const ok=ua===q.a;fb=`<div class="fb-box ${ok?'fb-ok':'fb-no'}">${ok?'✓ Correct! ':'✗ Incorrect. '}${q.f}</div>`;}
+  document.getElementById('q-area').innerHTML=`
+    <div class="q-wrap">
+      <div class="q-accent" style="background:${accColor}"></div>
+      <div class="q-num-tag">Q${curIdx+1} of ${roundQs.length} · <span class="pill pill-gray">${q.t}</span></div>
+      <div class="q-text">${q.q}</div>
+      <div class="opts-grid">${opts}</div>
+      ${fb}
+    </div>`;
+}
+
+function calcStreak(){let s=0;for(let i=sesAnswers.length-1;i>=0;i--){if(sesAnswers[i]===undefined)break;if(sesAnswers[i]===roundQs[i].a)s++;else break;}return s;}
+
+function pick(i){
+  if(sesAnswers[curIdx]!==undefined)return;
+  sesAnswers[curIdx]=i;
+  const q=roundQs[curIdx];
+  const ok=i===q.a;
+  let xpGain=ok?10:0;
+  const s=calcStreak();
+  if(ok&&s>0&&s%3===0)xpGain+=5;
+  if(ok){sesCorrect++;sesXP+=xpGain;ud.xp+=xpGain;}
+  ud.totalAns++;ud.totalCorrect+=ok?1:0;
+  if(curTopic===1){ud.t1Ans++;ud.t1Cor+=ok?1:0;}else{ud.t2Ans++;ud.t2Cor+=ok?1:0;}
+  document.getElementById('qhud-xp').textContent='XP: '+ud.xp;
+  saveU();renderQ();
+  const allDone=sesAnswers.every(a=>a!==undefined);
+  if(allDone)setTimeout(()=>{
+    const pct=Math.round(sesCorrect/roundQs.length*100);
+    if(curTopic===1&&pct>ud.t1Best)ud.t1Best=pct;
+    if(curTopic===2&&pct>ud.t2Best)ud.t2Best=pct;
+    saveU();
+    if(pool.length>0){showMGIntro();}else{showFinalResult();}
+  },700);
+}
+
+function qNav(d){curIdx=Math.max(0,Math.min(roundQs.length-1,curIdx+d));renderQ();}
+function exitToD(){if(curTopic===1){const p=sesAnswers.filter(a=>a!==undefined).length>0?Math.round(sesCorrect/(sesAnswers.filter(a=>a!==undefined).length)*100):0;if(p>ud.t1Best)ud.t1Best=p;}else{const p=sesAnswers.filter(a=>a!==undefined).length>0?Math.round(sesCorrect/(sesAnswers.filter(a=>a!==undefined).length)*100):0;if(p>ud.t2Best)ud.t2Best=p;}saveU();showDash();}
+
+function showMGIntro(){
+  mgType=roundNum%2===1?0:1;
+  if(mgType===0){
+    document.getElementById('mg-icon').textContent='🦠';
+    document.getElementById('mg-title').textContent='Cell Catcher!';
+    document.getElementById('mg-desc').textContent='Cells are falling — click the one with the correct answer before it hits the bottom!';
+  } else {
+    document.getElementById('mg-icon').textContent='🚢';
+    document.getElementById('mg-title').textContent='Submarine Dodge!';
+    document.getElementById('mg-desc').textContent='Steer the submarine! Move up/down to dodge WRONG answers and collect CORRECT ones!';
+  }
+  show('s-mgintro');
+}
+
+function startMG(){
+  show('s-mg');
+  if(mgType===0)runCellCatcher();else runSubDodge();
+}
+
+function endMG(){
+  if(mgAnimFrame)cancelAnimationFrame(mgAnimFrame);
+  if(mgTimer)clearInterval(mgTimer);
+  const xpE=mgScore*5;ud.xp+=xpE;saveU();
+  document.getElementById('mgr-icon').textContent=mgScore>=6?'🏆':mgScore>=3?'👍':'📚';
+  document.getElementById('mgr-title').textContent=mgScore>=6?'Brilliant!':mgScore>=3?'Nice work!':'Keep going!';
+  document.getElementById('mgr-msg').textContent='You scored '+mgScore+' in the mini game — back to questions!';
+  document.getElementById('mgr-caught').textContent=mgScore;
+  document.getElementById('mgr-missed').textContent=10-mgScore;
+  document.getElementById('mgr-xp').textContent=xpE;
+  document.getElementById('mgr-total').textContent=ud.xp;
+  show('s-mgresult');
+}
+
+function continueAfterMG(){sesCorrect=0;sesXP=0;startRound();}
+
+function runCellCatcher(){
+  const canvas=document.getElementById('mg-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const qs=shuffle([...MG_QS_CC]);
+  let qi=0,mgQ=qs[qi],timeLeft=30,caught=0,total=0;
+  mgScore=0;
+  document.getElementById('mg-game-title').textContent='Cell Catcher';
+  document.getElementById('mg-instruction').textContent='Click the falling cell with the correct answer';
+  document.getElementById('mg-question').textContent=mgQ.q;
+  const COLORS=['#E1F5EE','#EEEDFE','#FAEEDA','#FCEBEB'];
+  const STROKE=['#1D9E75','#7F77DD','#BA7517','#E24B4A'];
+  let cells=[];
+  function spawnCells(){
+    cells=[];
+    const opts=shuffle(mgQ.o.map((txt,i)=>({txt,correct:i===mgQ.a})));
+    opts.forEach((op,i)=>{
+      const x=60+i*(W-80)/3+Math.random()*20-10;
+      cells.push({x,y:-40-i*30,r:34,txt:op.txt,correct:op.correct,col:COLORS[i],stroke:STROKE[i],speed:1.2+Math.random()*0.8,hit:false});
+    });
+  }
+  spawnCells();
+  let answered=false;
+  mgTimer=setInterval(()=>{
+    timeLeft--;
+    document.getElementById('mg-time-disp').textContent='⏱ '+timeLeft+'s';
+    if(timeLeft<=0){clearInterval(mgTimer);endMG();}
+  },1000);
+  canvas.onclick=function(e){
+    if(answered)return;
+    const rect=canvas.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(W/rect.width);
+    const my=(e.clientY-rect.top)*(H/rect.height);
+    cells.forEach(c=>{
+      if(c.hit)return;
+      const dx=mx-c.x,dy=my-c.y;
+      if(dx*dx+dy*dy<c.r*c.r){
+        c.hit=true;answered=true;total++;
+        if(c.correct){mgScore++;caught++;document.getElementById('mg-score-disp').textContent='Score: '+mgScore;c.flash='#1D9E75';}
+        else{c.flash='#E24B4A';}
+        setTimeout(()=>{
+          answered=false;qi=(qi+1)%qs.length;mgQ=qs[qi];
+          document.getElementById('mg-question').textContent=mgQ.q;
+          spawnCells();
+        },600);
+      }
+    });
+  };
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#F1EFE8';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#D3D1C7';ctx.lineWidth=1;
+    for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    cells.forEach(c=>{
+      if(!c.hit)c.y+=c.speed;
+      ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
+      ctx.fillStyle=c.flash||c.col;ctx.fill();
+      ctx.strokeStyle=c.hit?(c.flash||c.stroke):c.stroke;ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle=c.hit&&c.flash==='#1D9E75'?'#085041':c.hit&&c.flash==='#E24B4A'?'#791F1F':'#2C2C2A';
+      ctx.font='11px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      const words=c.txt.split(' ');
+      if(words.length<=2){ctx.fillText(c.txt,c.x,c.y);}
+      else{ctx.fillText(words.slice(0,2).join(' '),c.x,c.y-7);ctx.fillText(words.slice(2).join(' '),c.x,c.y+7);}
+      if(c.y-c.r>H&&!c.hit){c.y=-50;c.hit=false;}
+    });
+    mgAnimFrame=requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function runSubDodge(){
+  const canvas=document.getElementById('mg-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const qs=shuffle([...MG_QS_SUB]);
+  let qi=0,mgQ=qs[qi],timeLeft=35;
+  mgScore=0;
+  document.getElementById('mg-game-title').textContent='Submarine Dodge';
+  document.getElementById('mg-instruction').textContent='Move mouse up/down — collect correct answers, dodge wrong ones!';
+  document.getElementById('mg-question').textContent=mgQ.q;
+  let subY=H/2,targetY=H/2;
+  let obstacles=[];let frameN=0;let answered=false;
+  function spawnObs(){
+    const opts=shuffle(mgQ.o.map((txt,i)=>({txt,correct:i===mgQ.a})));
+    const ySlots=[60,130,200,270];
+    opts.forEach((op,i)=>{
+      obstacles.push({x:W+20,y:ySlots[i],w:90,h:34,txt:op.txt,correct:op.correct,speed:2.5,hit:false,flash:null,flashTimer:0});
+    });
+  }
+  spawnObs();
+  canvas.onmousemove=function(e){const r=canvas.getBoundingClientRect();targetY=(e.clientY-r.top)*(H/r.height);};
+  canvas.ontouchmove=function(e){e.preventDefault();const r=canvas.getBoundingClientRect();targetY=(e.touches[0].clientY-r.top)*(H/r.height);};
+  mgTimer=setInterval(()=>{timeLeft--;document.getElementById('mg-time-disp').textContent='⏱ '+timeLeft+'s';if(timeLeft<=0){clearInterval(mgTimer);endMG();}},1000);
+  function drawSub(x,y){
+    ctx.fillStyle='#378ADD';ctx.beginPath();ctx.ellipse(x,y,28,14,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#B5D4F4';ctx.fillRect(x-8,y-14,16,8);
+    ctx.fillStyle='#E6F1FB';ctx.beginPath();ctx.arc(x+8,y-2,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#B5D4F4';ctx.beginPath();ctx.moveTo(x+28,y);ctx.lineTo(x+38,y-8);ctx.lineTo(x+38,y+8);ctx.closePath();ctx.fill();
+  }
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#042C53';ctx.fillRect(0,0,W,H);
+    for(let i=0;i<15;i++){ctx.fillStyle='rgba(181,212,244,0.15)';ctx.beginPath();ctx.arc(Math.sin(i*137.5)*W/2+W/2,(i*67+frameN*0.3)%H,1+i%3,0,Math.PI*2);ctx.fill();}
+    ctx.strokeStyle='rgba(181,212,244,0.08)';ctx.lineWidth=1;
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y+(Math.sin(frameN*0.02+y)*5));ctx.lineTo(W,y+(Math.sin(frameN*0.02+y+1)*5));ctx.stroke();}
+    subY+=(targetY-subY)*0.12;subY=Math.max(20,Math.min(H-20,subY));
+    obstacles.forEach(ob=>{
+      if(!ob.hit)ob.x-=ob.speed;
+      if(ob.flashTimer>0){ob.flashTimer--;if(ob.flashTimer===0)ob.flash=null;}
+      const bg=ob.flash||(ob.correct?'#1D9E75':'#993C1D');
+      const tx=ob.correct?'#E1F5EE':'#F5C4B3';
+      ctx.fillStyle=bg;roundRect(ctx,ob.x-ob.w/2,ob.y-ob.h/2,ob.w,ob.h,8);ctx.fill();
+      ctx.strokeStyle=ob.correct?'#5DCAA5':'#F0997B';ctx.lineWidth=1.5;roundRect(ctx,ob.x-ob.w/2,ob.y-ob.h/2,ob.w,ob.h,8);ctx.stroke();
+      ctx.fillStyle=tx;ctx.font='11px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      const words=ob.txt.split(' ');
+      if(words.length<=2){ctx.fillText(ob.txt,ob.x,ob.y);}
+      else{ctx.fillText(words.slice(0,2).join(' '),ob.x,ob.y-7);ctx.fillText(words.slice(2).join(' '),ob.x,ob.y+7);}
+      if(!ob.hit&&!answered){
+        const dx=Math.abs((ob.x)-150),dy=Math.abs(ob.y-subY);
+        if(dx<40&&dy<22){
+          ob.hit=true;answered=true;
+          if(ob.correct){mgScore++;document.getElementById('mg-score-disp').textContent='Score: '+mgScore;ob.flash='#5DCAA5';ob.flashTimer=20;}
+          else{ob.flash='#F09595';ob.flashTimer=20;}
+          setTimeout(()=>{
+            answered=false;
+            obstacles=obstacles.filter(o=>!o.hit||o.flashTimer>0);
+            qi=(qi+1)%qs.length;mgQ=qs[qi];
+            document.getElementById('mg-question').textContent=mgQ.q;
+            spawnObs();
+          },600);
+        }
+      }
+      if(ob.x<-60)ob.hit=true;
+    });
+    obstacles=obstacles.filter(o=>o.x>-60||o.flashTimer>0);
+    drawSub(150,subY);
+    frameN++;
+    mgAnimFrame=requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+
+function showFinalResult(){
+  const total=curTopic===1?T1.length:T2.length;
+  const ans=curTopic===1?ud.t1Ans:ud.t2Ans;
+  const cor=curTopic===1?ud.t1Cor:ud.t2Cor;
+  const pct=ans>0?Math.round(cor/ans*100):0;
+  document.getElementById('r-emoji').textContent=pct>=80?'🎯':pct>=60?'👍':'📚';
+  document.getElementById('r-score').textContent=cor+'/'+ans;
+  document.getElementById('r-pct').textContent=pct+'%';
+  document.getElementById('r-msg').textContent=pct>=80?'Excellent work — strong grasp of this topic!':pct>=60?'Good effort — check the questions you missed.':'Keep going — use the feedback to find the gaps.';
+  document.getElementById('r-correct').textContent=cor;
+  document.getElementById('r-wrong').textContent=ans-cor;
+  document.getElementById('r-xp').textContent=sesXP;
+  document.getElementById('r-total').textContent=ud.xp;
+  const t2ok=ud.t1Best>=UNLOCK_PCT;
+  const uDiv=document.getElementById('r-unlock');
+  uDiv.innerHTML=curTopic===1&&t2ok?'<span class="pill pill-purple" style="font-size:13px;padding:6px 14px">🔓 Topic 2 unlocked!</span>':curTopic===1&&!t2ok?`<span class="pill pill-amber" style="font-size:13px;padding:6px 14px">Need 70% to unlock Topic 2 — best: ${Math.round(ud.t1Best)}%</span>`:'';
+  document.getElementById('r-review').innerHTML='<p style="font-size:14px;color:var(--color-text-secondary)">Completed full session! Use the topic cards to see accuracy.</p>';
+  show('s-result');
+}
+
+function playAgain(){startGame(curTopic);}
+
+window.startGame=startGame;window.showDash=showDash;
+</script>
